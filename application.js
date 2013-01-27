@@ -10,10 +10,9 @@ function onClick(info, tab) {
             idOpenTab = tab.id;
         });
     }
+}
 
-};
-
-chrome.contextMenus.create({"title": "Found in what.cd", "contexts":["selection", "link"],
+chrome.contextMenus.create({"title": "Found in what.cd - %s", "contexts":["selection", "link"],
     "onclick": onClick});
 
 chrome.tabs.onRemoved.addListener(function(tabId, removeInfo) {

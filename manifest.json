@@ -1,0 +1,20 @@
+{
+    "manifest_version": 2,
+
+    "name": "One-click found artist what.cd",
+    "description": "One-click found artist what.cd.",
+    "version": "1.0",
+
+    "permissions":[
+        "contextMenus",
+        "tabs"
+    ],
+    "icons": {
+        "16": "icon-16.png",
+        "48": "icon-48.png",
+        "128": "icon-128.png"
+    },
+    "background": {
+        "scripts": ["application.js"]
+    }
+}

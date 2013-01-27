@@ -1,59 +1,111 @@
+/**
+ *
+ * @type {Object}
+ */
+var arrayTabsId = {};
 
-var idOpenTabWhatCd = null;
-var idOpenTabLastFm = null;
-var idOpenTabYoutube = null;
+/**
+ *
+ * @type {Object}
+ */
+var options = {
+    lastfm: {title:"Last.fm", prefix: "http://www.last.fm/search?q="},
+    whatcd: {title:"What.cd", prefix: "https://what.cd/torrents.php?searchstr="},
+    youtube: {title:"Youtube.com (HD)", prefix:"http://www.youtube.com/results?high_definition=1&search_type=videos&uni=3&search_query="}
+};
 
-function gotoWhatcd(info, tab) {
-    var urlWhatCd = "https://what.cd/torrents.php?searchstr=" + info.selectionText;
+/**
+ *
+ * @param array
+ * @param value
+ * @return {*}
+ */
+function findId(value) {
+    for (key in arrayTabsId) {
+        if (arrayTabsId[key] == value) return key;
+    }
 
-    if(idOpenTabWhatCd != null) {
-        chrome.tabs.update(idOpenTabWhatCd, {url: urlWhatCd});
+    return false;
+}
+
+/**
+ *
+ * @param key
+ * @param value
+ */
+function setIdTab(key, value) {
+
+    if (typeof value === "number") {
+        arrayTabsId[key] = value;
     } else {
-        chrome.tabs.create({url: urlWhatCd}, function(tab){
-            idOpenTabWhatCd = tab.id;
-        });
+        if (existIdTab(key)) {
+            delete arrayTabsId[key];
+        }
+    }
+
+    return this;
+}
+
+/**
+ *
+ * @param key
+ * @return {*}
+ */
+function getIdTab(key) {
+    return existIdTab(key) ? arrayTabsId[key] : false;
+}
+
+/**
+ *
+ * @param key
+ * @return {Boolean}
+ */
+function existIdTab(key) {
+    return (key in arrayTabsId) ? true : false;
+}
+
+/**
+ *
+ * @param key
+ * @return {Function}
+ */
+function onClick(key) {
+    var prefixUrl = options[key].prefix; //"https://www.google.com/?q="
+
+    return function (info, tab) {
+        var url = prefixUrl + info.selectionText;
+        var idTab = getIdTab(key);
+
+        if (idTab != false) {
+            chrome.tabs.update(idTab, {url:url});
+        } else {
+            chrome.tabs.create({url:url, active:false}, function (tab) {
+                setIdTab(key, tab.id);
+            });
+        }
     }
 }
 
-function gotoLastfm(info, tab) {
-    var urlLastFm = "http://www.last.fm/search?q=" + info.selectionText;
+var id = chrome.contextMenus.create({"title":"Found '%s' in", "contexts":["selection", "link"]});
 
-    if(idOpenTabLastFm != null) {
-        chrome.tabs.update(idOpenTabLastFm, {url: urlLastFm});
-    } else {
-        chrome.tabs.create({url: urlLastFm}, function(tab){
-            idOpenTabLastFm = tab.id;
-        });
-    }
+/**
+ * Add items
+ */
+for (name in options) {
+    chrome.contextMenus.create(
+        {
+            title:options[name].title,
+            contexts:["selection", "link"],
+            onclick:onClick(name),
+            parentId:id
+        }
+    );
 }
 
-function gotoYoutube(info, tab) {
-    var urlYoutube = "http://www.youtube.com/results?high_definition=1&search_type=videos&uni=3&search_query=" + info.selectionText;
+chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
+    var key = findId(tabId);
 
-    if(idOpenTabYoutube != null) {
-        chrome.tabs.update(idOpenTabYoutube, {url: urlYoutube});
-    } else {
-        chrome.tabs.create({url: urlYoutube}, function(tab){
-            idOpenTabYoutube = tab.id;
-        });
-    }
-}
-
-var id = chrome.contextMenus.create({"title": "Found %s in", "contexts":["selection", "link"]});
-
-chrome.contextMenus.create({"title": "Last.fm", "contexts":["selection", "link"],
-    "onclick": gotoLastfm, "parentId": id});
-chrome.contextMenus.create({"title": "What.cd", "contexts":["selection", "link"],
-    "onclick": gotoWhatcd, "parentId": id});
-chrome.contextMenus.create({"title": "Youtube.com", "contexts":["selection", "link"],
-    "onclick": gotoYoutube, "parentId": id});
-
-chrome.tabs.onRemoved.addListener(function(tabId, removeInfo) {
-    if(tabId == idOpenTabWhatCd) {
-        idOpenTabWhatCd = null;
-    } else if(tabId == idOpenTabLastFm) {
-        idOpenTabLastFm = null;
-    } else if(tabId == idOpenTabYoutube) {
-        idOpenTabYoutube = null;
+    if (false !== key) {
+        setIdTab(key); // remove identifier closed tab
     }
 });

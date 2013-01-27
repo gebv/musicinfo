@@ -3,7 +3,7 @@
 
     "name": "One-click find music info",
     "description": "One-click find music info.",
-    "version": "0.2.2",
+    "version": "0.2.3",
 
     "permissions":[
         "contextMenus",

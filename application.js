@@ -1,22 +1,35 @@
 
-var idOpenTab = null;
-function onClick(info, tab) {
-    var url = "https://what.cd/torrents.php?searchstr=" + info.selectionText;
+var idOpenTabWhatCd = null;
+var idOpenTabLastFm = null;
 
-    if(idOpenTab != null) {
-        chrome.tabs.update(idOpenTab, {url: url});
+function onClick(info, tab) {
+    var urlWhatCd = "https://what.cd/torrents.php?searchstr=" + info.selectionText;
+    var urlLastFm = "http://www.last.fm/search?q=" + info.selectionText;
+
+    if(idOpenTabWhatCd != null) {
+        chrome.tabs.update(idOpenTabWhatCd, {url: urlWhatCd});
     } else {
-        chrome.tabs.create({url: url}, function(tab){
-            idOpenTab = tab.id;
+        chrome.tabs.create({url: urlWhatCd}, function(tab){
+            idOpenTabWhatCd = tab.id;
+        });
+    }
+
+    if(idOpenTabLastFm != null) {
+        chrome.tabs.update(idOpenTabLastFm, {url: urlLastFm});
+    } else {
+        chrome.tabs.create({url: urlLastFm}, function(tab){
+            urlLastFm = tab.id;
         });
     }
 }
 
-chrome.contextMenus.create({"title": "Found in what.cd - %s", "contexts":["selection", "link"],
+var id = chrome.contextMenus.create({"title": "Found %s", "contexts":["selection", "link"],
     "onclick": onClick});
 
 chrome.tabs.onRemoved.addListener(function(tabId, removeInfo) {
-    if(tabId == idOpenTab) {
-        idOpenTab = null;
+    if(tabId == idOpenTabWhatCd) {
+        idOpenTabWhatCd = null;
+    } else if(tabId == idOpenTabLastFm) {
+        idOpenTabLastFm = null;
     }
 });

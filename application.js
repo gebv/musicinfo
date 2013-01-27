@@ -53,5 +53,7 @@ chrome.tabs.onRemoved.addListener(function(tabId, removeInfo) {
         idOpenTabWhatCd = null;
     } else if(tabId == idOpenTabLastFm) {
         idOpenTabLastFm = null;
+    } else if(tabId == idOpenTabYoutube) {
+        idOpenTabYoutube = null;
     }
 });
